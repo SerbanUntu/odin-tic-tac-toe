@@ -121,21 +121,56 @@ button {
 }
 
 .cell {
-  background: white;
+  position: relative;
+  perspective: 500px;
   &[data-marker="X"] {
-    background: url("../images/x.svg") no-repeat 50% 50%, var(--red);
-    background-size: 70%;
+    .cell-content {
+      transform: rotateY(180deg);
+    }
+    .cell-back {
+      background: url("../images/x.svg") no-repeat 50% 50%, var(--red);
+      background-size: 70%;
+    }
   }
   &[data-marker="O"] {
-    background: url("../images/o.svg") no-repeat 50% 50%, var(--blue);
-    background-size: 70%;
+    .cell-content {
+      transform: rotateY(180deg);
+    }
+    .cell-back {
+      background: url("../images/o.svg") no-repeat 50% 50%, var(--blue);
+      background-size: 70%;
+    }
   }
   &:not([data-marker]) {
     cursor: pointer;
-    &:hover {
-      background: var(--off-white);
-    }
   }
+}
+
+.cell-content {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: transform 500ms;
+
+  transform-style: preserve-3d;
+}
+
+.cell-front, .cell-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+}
+
+.cell-front {
+  background: white;
+  &:hover {
+    background: var(--off-white);
+  }
+}
+
+.cell-back {
+  transform: rotateY(180deg);
 }
 
 .form {
