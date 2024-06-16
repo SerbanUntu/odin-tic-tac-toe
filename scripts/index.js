@@ -126,8 +126,7 @@ const Game = (function () {
       formDOM.reset();
       startDialogDOM.show();
     }
-    Game.currentMarker = 'X';
-    Game.player = [null, null];
+    currentMarker = 'X';
     roundNumber = 1;
     winner = null;
     Board.reset();
