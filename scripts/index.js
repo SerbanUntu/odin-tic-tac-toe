@@ -5,13 +5,13 @@ const board = (function () {
 
   const setMarker = (cellNumber, marker) => {
     cells[cellNumber] = marker;
-    cellsDOM[cellNumber].textContent = marker;
+    cellsDOM[cellNumber].dataset.marker = marker;
   }
 
   const reset = () => {
     for(let i = 0; i < 9; i++) {
       cells[i] = '';
-      cellsDOM[i].textContent = '';
+      delete cellsDOM[i].dataset.marker;
     }
   }
 
@@ -31,7 +31,7 @@ const game = (function () {
       setWinner(winnerMarker);
       end(winner);
     } else if(roundNumber === 9) {
-      end('draw');
+      end("draw");
     } else {
       roundNumber++;
       if(currentMarker === 'X')
@@ -45,10 +45,10 @@ const game = (function () {
     let result = '';
     [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]].forEach(combination => {
       switch(board.getMarker([combination[0]]) + board.getMarker([combination[1]]) + board.getMarker([combination[2]])) {
-        case 'XXX':
+        case "XXX":
           result = 'X';
           break;
-        case 'OOO':
+        case "OOO":
           result = 'O';
           break;
       }
@@ -66,20 +66,23 @@ const game = (function () {
   const end = (result) => {
     game.active = false;
     endDialogDOM.show();
-    if(result === 'draw') {
+    if(result === "draw") {
       winnerTextDOM.textContent = "It's a draw!";
+      winnerTextDOM.setAttribute("title", "It's a draw!");
     } else {
       winnerTextDOM.textContent = `${winner.name} wins!`;
+      winnerTextDOM.setAttribute("title", `${winner.name} wins!`);
     }
   }
 
   const reset = (keepNames) => {
     if(keepNames === true) {
       game.active = true;
+      gridDOM.style.display = "grid";
     } else {
       game.active = false;
-      inputPlayerOneDOM.value = '';
-      inputPlayerTwoDOM.value = '';
+      gridDOM.style.display = "none";
+      formDOM.reset();
       startDialogDOM.show();
     }
     game.currentMarker = 'X';
@@ -95,33 +98,35 @@ function createPlayer(name) {
   return { name };
 }
 
-const cellsDOM = document.querySelectorAll('.cell');
+const cellsDOM = document.querySelectorAll(".cell");
 
-cellsDOM.forEach((cell, index) => cell.addEventListener('click', e => {
+cellsDOM.forEach((cell, index) => cell.addEventListener("click", e => {
   e.preventDefault();
   if(game.active && board.getMarker(index) === '') {
     game.playRound(index);
   }
 }));
 
-const formDOM = document.querySelector('form');
-const inputPlayerOneDOM = document.querySelector('.player-one');
-const inputPlayerTwoDOM = document.querySelector('.player-two');
-const playButtonDOM = document.querySelector('.play-button');
-const startDialogDOM = document.querySelector('.start-dialog');
-const endDialogDOM = document.querySelector('.end-dialog');
-const winnerTextDOM = document.querySelector('.winner-text');
-const keepNamesDOM = document.querySelector('.keep-names');
-const newNamesDOM = document.querySelector('.new-names');
+const formDOM = document.querySelector("form");
+const gridDOM = document.querySelector(".grid");
+const inputPlayerOneDOM = document.querySelector(".player-one");
+const inputPlayerTwoDOM = document.querySelector(".player-two");
+const playButtonDOM = document.querySelector(".play-button");
+const startDialogDOM = document.querySelector(".start-dialog");
+const endDialogDOM = document.querySelector(".end-dialog");
+const winnerTextDOM = document.querySelector(".winner-text");
+const keepNamesDOM = document.querySelector(".keep-names");
+const newNamesDOM = document.querySelector(".new-names");
 
 let playerOne = null;
 let playerTwo = null;
 
-formDOM.addEventListener('submit', (e) => {
+formDOM.addEventListener("submit", (e) => {
   e.preventDefault();
-  playerOne = createPlayer(inputPlayerOneDOM.value);
-  playerTwo = createPlayer(inputPlayerTwoDOM.value);
+  playerOne = createPlayer(inputPlayerOneDOM.value || "One");
+  playerTwo = createPlayer(inputPlayerTwoDOM.value || "Two");
   game.active = true;
+  gridDOM.style.display = "grid";
   startDialogDOM.close();
 });
 
