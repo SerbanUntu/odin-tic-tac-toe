@@ -18,6 +18,21 @@
     <div class="cell"></div>
     <div class="cell"></div>
   </main>
+  <dialog open class="start-dialog">
+    <form>
+      <label for="player-one-name-input">Player 1's name:</label>
+      <input id="player-one-name-input" class="player-one" name="player-one" type="text" required maxlength="50">
+      <label for="player-two-name-input">Player 2's name:</label>
+      <input id="player-two-name-input" class="player-two" name="player-two" type="text" required maxlength="50">
+      <button class="play-button" type="submit">Play</button>
+    </form>
+  </dialog>
+  <dialog class="end-dialog">
+    <h1 class="winner-text"></h1>
+    <p>Play again</p>
+    <button class="keep-names" type="button">Keep names</button>
+    <button class="new-names" type="button">New names</button>
+  </dialog>
   <script src="./scripts/index.js"></script>
 </body>
 </html>
