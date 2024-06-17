@@ -1,10 +1,18 @@
-const Board = (function () {
-  const cells = Array(9).fill('');
-  const cellsDOM = [];
+const gridDOM = document.querySelector(".grid");
+const formDOM = document.querySelector("form");
+const keepNamesDOM = document.querySelector(".keep-names");
+const newNamesDOM = document.querySelector(".new-names");
+const inputPlayerOneDOM = document.querySelector(".player-one");
+const inputPlayerTwoDOM = document.querySelector(".player-two");
+const startDialogDOM = document.querySelector(".start-dialog");
+const endDialogDOM = document.querySelector(".end-dialog");
+const winnerTextDOM = document.querySelector(".winner-text");
 
-  const gridDOM = document.querySelector(".grid");
+class Board {
+  static #cells = Array(9).fill('');
+  static #cellsDOM = [];
 
-  const init = () => {
+  static init() {
     for(let i = 0; i < 9; i++) {
       const newCell = document.createElement('div');
       gridDOM.appendChild(newCell);
@@ -17,22 +25,24 @@ const Board = (function () {
       newCell.classList.add('cell');
       newCell.addEventListener("click", e => {
         e.preventDefault();
-        if(Game.active && Board.getMarker(i) === '') {
+        if(Game.active && this.getMarker(i) === '') {
           Game.playRound(i);
         }
       });
-      cellsDOM.push(newCell);
+      this.#cellsDOM.push(newCell);
     }
   }
 
-  const getMarker = cellNumber => cells[cellNumber];
-
-  const setMarker = (cellNumber, marker) => {
-    cells[cellNumber] = marker;
-    cellsDOM[cellNumber].dataset.marker = marker;
+  static getMarker(cellNumber) {
+    return this.#cells[cellNumber];
   }
 
-  const displayGrid = (displayed) => {
+  static setMarker(cellNumber, marker) {
+    this.#cells[cellNumber] = marker;
+    this.#cellsDOM[cellNumber].dataset.marker = marker;
+  }
+
+  static displayGrid(displayed) {
     if(!displayed) {
       gridDOM.style.display = "none";
     } else {
@@ -40,95 +50,84 @@ const Board = (function () {
     }
   }
 
-  const reset = (namesKept) => {
+  static reset(namesKept) {
     if (namesKept === true) {
-      displayGrid(true);
+      this.displayGrid(true);
     } else {
-      displayGrid(false);
+      this.displayGrid(false);
     }
     for(let i = 0; i < 9; i++) {
-      cells[i] = '';
-      delete cellsDOM[i].dataset.marker;
+      this.#cells[i] = '';
+      delete this.#cellsDOM[i].dataset.marker;
     }
   }
+}
 
-  return { init, getMarker, setMarker, displayGrid, reset };
-})();
+class Game {
+  static active = false;
+  static #currentMarker = 'X';
+  static #roundNumber = 1;
+  static #winner = null;
+  static #player = [null, null];
 
-const Game = (function () {
-  let currentMarker = 'X';
-  let roundNumber = 1;
-  let winner = null;
-  let active = false;
-  let player = [null, null];
-
-  const formDOM = document.querySelector("form");
-  const keepNamesDOM = document.querySelector(".keep-names");
-  const newNamesDOM = document.querySelector(".new-names");
-  const inputPlayerOneDOM = document.querySelector(".player-one");
-  const inputPlayerTwoDOM = document.querySelector(".player-two");
-  const startDialogDOM = document.querySelector(".start-dialog");
-  const endDialogDOM = document.querySelector(".end-dialog");
-  const winnerTextDOM = document.querySelector(".winner-text");
-
-  const init = () => {
-    attachNamesFormEvent();
-    attachKeepNamesButtonEvent();
-    attachNewNamesButtonEvent();
+  static init() {
+    this.#attachNamesFormEvent();
+    this.#attachKeepNamesButtonEvent();
+    this.#attachNewNamesButtonEvent();
     Board.init();
   }
 
-  const attachNamesFormEvent = () => {
+  static #attachNamesFormEvent() {
     formDOM.addEventListener("submit", (e) => {
       e.preventDefault();
-      setPlayer(0, inputPlayerOneDOM.value || 'X');
-      setPlayer(1, inputPlayerTwoDOM.value || 'O');
-      Game.active = true;
+      this.setPlayer(0, inputPlayerOneDOM.value || 'X');
+      this.setPlayer(1, inputPlayerTwoDOM.value || 'O');
+      this.active = true;
       Board.displayGrid(true);
       startDialogDOM.close();
     });
   }
 
-  const attachKeepNamesButtonEvent = () => {
+  static #attachKeepNamesButtonEvent() {
     keepNamesDOM.addEventListener("click", (e) => {
       e.preventDefault();
       endDialogDOM.close();
-      reset(true);
+      this.#reset(true);
     });
   }
 
-  const attachNewNamesButtonEvent = () => {
+  static #attachNewNamesButtonEvent() {
     newNamesDOM.addEventListener("click", (e) => {
       e.preventDefault();
       endDialogDOM.close();
-      reset(false);
+      this.#reset(false);
     });
   }
 
-  const setPlayer = (index, name) => {
+  static setPlayer(index, name) {
     let marker = 'X';
     if(index === 1) marker = 'O';
-    player[index] = { name, marker };
+    this.#player[index] = { name, marker };
   }
 
-  const playRound = (cellNumber) => {
-    Board.setMarker(cellNumber, currentMarker);
-    const winnerMarker = checkWinnerMarker();
+  static playRound(cellNumber) {
+    Board.setMarker(cellNumber, this.#currentMarker);
+    const winnerMarker = this.#checkWinnerMarker();
     if(winnerMarker !== '') {
-      setWinner(winnerMarker);
-      end(winner);
-    } else if(roundNumber === 9) {
-      end("draw");
+      this.#setWinner(winnerMarker);
+      this.#end(this.#winner);
+    } else if(this.#roundNumber === 9) {
+      this.#end("draw");
     } else {
-      roundNumber++;
-      if(currentMarker === 'X')
-        currentMarker = 'O';
+      this.#roundNumber++;
+      if(this.#currentMarker === 'X')
+        this.#currentMarker = 'O';
       else
-        currentMarker = 'X';
+        this.#currentMarker = 'X';
     }
-  };
+  }
 
-  const checkWinnerMarker = () => {
+  static #checkWinnerMarker() {
     let result = '';
     [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]].forEach(combination => {
       switch(Board.getMarker([combination[0]]) + Board.getMarker([combination[1]]) + Board.getMarker([combination[2]])) {
@@ -143,41 +142,39 @@ const Game = (function () {
     return result;
   }
 
-  const setWinner = (marker) => {
+  static #setWinner(marker) {
     if(marker === 'X') 
-      winner = player[0];
+      this.#winner = this.#player[0];
     else 
-      winner = player[1];
+      this.#winner = this.#player[1];
   }
 
-  const end = (result) => {
-    Game.active = false;
+  static #end(result) {
+    this.active = false;
     if(result === "draw") {
       winnerTextDOM.innerHTML = "It's a draw!";
       winnerTextDOM.setAttribute("title", "It's a draw!");
     } else {
       winnerTextDOM.innerHTML = 
-        `<span class="winner-name" style="color: var(--${winner.marker === 'X' ? 'red' : 'blue'});">${winner.name}</span> wins!`;
-      winnerTextDOM.setAttribute("title", `${winner.name} wins!`);
+        `<span class="winner-name" style="color: var(--${this.#winner.marker === 'X' ? 'red' : 'blue'});">${this.#winner.name}</span> wins!`;
+      winnerTextDOM.setAttribute("title", `${this.#winner.name} wins!`);
     }
     endDialogDOM.show();
   }
 
-  const reset = (namesKept) => {
+  static #reset(namesKept) {
     if(namesKept === true) {
-      Game.active = true;
+      this.active = true;
     } else {
-      Game.active = false;
+      this.active = false;
       formDOM.reset();
       startDialogDOM.show();
     }
-    currentMarker = 'X';
-    roundNumber = 1;
-    winner = null;
+    this.#currentMarker = 'X';
+    this.#roundNumber = 1;
+    this.#winner = null;
     Board.reset(namesKept);
   }
-
-  return { active, init, setPlayer, playRound };
-})();
+}
 
 Game.init();
