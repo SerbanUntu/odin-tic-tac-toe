@@ -1,6 +1,7 @@
 :root {
   --text: hsl(225deg 20% 10%);
   --text-de: hsl(225 20% 60%);
+  --grey: hsl(225deg 20% 85%);
   --background: hsl(225deg 20% 90%);
   --off-white: hsl(225deg 20% 95%);
   --red: hsl(5deg 80% 60%);
@@ -93,11 +94,7 @@ button {
   cursor: pointer;
 
   &:hover {
-    background: var(--off-white);
-  }
-
-  &:focus {
-    background: var(--light-blue);
+    background: var(--grey);
   }
 }
 

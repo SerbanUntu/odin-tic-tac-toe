@@ -1,17 +1,10 @@
-const formDOM = document.querySelector("form");
-const gridDOM = document.querySelector(".grid");
-const inputPlayerOneDOM = document.querySelector(".player-one");
-const inputPlayerTwoDOM = document.querySelector(".player-two");
-const startDialogDOM = document.querySelector(".start-dialog");
-const endDialogDOM = document.querySelector(".end-dialog");
-const keepNamesDOM = document.querySelector(".keep-names");
-const newNamesDOM = document.querySelector(".new-names");
-
 const Board = (function () {
   const cells = Array(9).fill('');
   const cellsDOM = [];
 
-  const build = () => {
+  const gridDOM = document.querySelector(".grid");
+
+  const init = () => {
     for(let i = 0; i < 9; i++) {
       const newCell = document.createElement('div');
       gridDOM.appendChild(newCell);
@@ -39,14 +32,27 @@ const Board = (function () {
     cellsDOM[cellNumber].dataset.marker = marker;
   }
 
-  const reset = () => {
+  const displayGrid = (displayed) => {
+    if(!displayed) {
+      gridDOM.style.display = "none";
+    } else {
+      gridDOM.style.display = "grid";
+    }
+  }
+
+  const reset = (namesKept) => {
+    if (namesKept === true) {
+      displayGrid(true);
+    } else {
+      displayGrid(false);
+    }
     for(let i = 0; i < 9; i++) {
       cells[i] = '';
       delete cellsDOM[i].dataset.marker;
     }
   }
 
-  return { build, getMarker, setMarker, reset };
+  return { init, getMarker, setMarker, displayGrid, reset };
 })();
 
 const Game = (function () {
@@ -55,6 +61,55 @@ const Game = (function () {
   let winner = null;
   let active = false;
   let player = [null, null];
+
+  const formDOM = document.querySelector("form");
+  const keepNamesDOM = document.querySelector(".keep-names");
+  const newNamesDOM = document.querySelector(".new-names");
+  const inputPlayerOneDOM = document.querySelector(".player-one");
+  const inputPlayerTwoDOM = document.querySelector(".player-two");
+  const startDialogDOM = document.querySelector(".start-dialog");
+  const endDialogDOM = document.querySelector(".end-dialog");
+  const winnerTextDOM = document.querySelector(".winner-text");
+
+  const init = () => {
+    attachNamesFormEvent();
+    attachKeepNamesButtonEvent();
+    attachNewNamesButtonEvent();
+    Board.init();
+  }
+
+  const attachNamesFormEvent = () => {
+    formDOM.addEventListener("submit", (e) => {
+      e.preventDefault();
+      setPlayer(0, inputPlayerOneDOM.value || 'X');
+      setPlayer(1, inputPlayerTwoDOM.value || 'O');
+      Game.active = true;
+      Board.displayGrid(true);
+      startDialogDOM.close();
+    });
+  }
+
+  const attachKeepNamesButtonEvent = () => {
+    keepNamesDOM.addEventListener("click", (e) => {
+      e.preventDefault();
+      endDialogDOM.close();
+      reset(true);
+    });
+  }
+
+  const attachNewNamesButtonEvent = () => {
+    newNamesDOM.addEventListener("click", (e) => {
+      e.preventDefault();
+      endDialogDOM.close();
+      reset(false);
+    });
+  }
+
+  const setPlayer = (index, name) => {
+    let marker = 'X';
+    if(index === 1) marker = 'O';
+    player[index] = { name, marker };
+  }
 
   const playRound = (cellNumber) => {
     Board.setMarker(cellNumber, currentMarker);
@@ -88,12 +143,6 @@ const Game = (function () {
     return result;
   }
 
-  const setPlayer = (index, name) => {
-    let marker = 'X';
-    if(index === 1) marker = 'O';
-    player[index] = { name, marker };
-  }
-
   const setWinner = (marker) => {
     if(marker === 'X') 
       winner = player[0];
@@ -102,8 +151,6 @@ const Game = (function () {
   }
 
   const end = (result) => {
-    const winnerTextDOM = document.querySelector(".winner-text");
-
     Game.active = false;
     if(result === "draw") {
       winnerTextDOM.innerHTML = "It's a draw!";
@@ -119,41 +166,18 @@ const Game = (function () {
   const reset = (namesKept) => {
     if(namesKept === true) {
       Game.active = true;
-      gridDOM.style.display = "grid";
     } else {
       Game.active = false;
-      gridDOM.style.display = "none";
       formDOM.reset();
       startDialogDOM.show();
     }
     currentMarker = 'X';
     roundNumber = 1;
     winner = null;
-    Board.reset();
+    Board.reset(namesKept);
   }
 
-  return { active, playRound, reset, setPlayer };
+  return { active, init, setPlayer, playRound };
 })();
 
-formDOM.addEventListener("submit", (e) => {
-  e.preventDefault();
-  Game.setPlayer(0, inputPlayerOneDOM.value || "One");
-  Game.setPlayer(1, inputPlayerTwoDOM.value || "Two");
-  Game.active = true;
-  gridDOM.style.display = "grid";
-  startDialogDOM.close();
-});
-
-keepNamesDOM.addEventListener("click", (e) => {
-  e.preventDefault();
-  endDialogDOM.close();
-  Game.reset(true);
-});
-
-newNamesDOM.addEventListener("click", (e) => {
-  e.preventDefault();
-  endDialogDOM.close();
-  Game.reset(false);
-});
-
-Board.build();
+Game.init();
